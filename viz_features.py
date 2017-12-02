@@ -1,27 +1,27 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import tensorflow as tf
 
 
 class Viz_Feat(object):
-    def __init__(self, val_data, train_data, class_labels, sess):
-        self.val_data = val_data
+    def __init__(self, train_data):
         self.train_data = train_data
-        self.CLASS_LABELS = class_labels
-        self.sess = sess
+        self.sess = tf.Session()
+        self.sess.run(tf.global_variables_initializer())
 
-    def vizualize_features(self, net):
-        images = [0, 10, 100]
+    def vizualize_features(self, net, image_size):
         """
         Compute the response map for the index images
         """
-        for i in images:
-            out = self.sess.run([net.conv_layer],
-                                feed_dict={net.images: self.val_data[i, 2].reshape((1, 90, 90, 3)),
-                                           net.labels: self.val_data[i, 1].reshape((1, 25))})
-            for j in range(5):
-                img = self.revert_image(out[0][0, :, :, j])
-                plt.title('img-' + str(i) + '-filter-' + str(j+1))
-                plt.imsave('figures/img-' + str(i) + '-filter-' + str(j+1) + '.png', img)
+        conv, sigmoid, max_pool, avg_pool = self.sess.run([net.conv, net.sigmoid, net.max_pool, net.avg_pool],
+                                                          feed_dict={net.images: self.train_data[0, 1].reshape(
+                                                              (1, image_size[0], image_size[1], 3))})
+        print(conv.shape)
+        for j in range(3):
+            img = self.revert_image(conv[0][0, :, :, j])
+
+            plt.title('img-' + str(i) + '-filter-' + str(j+1))
+            plt.imsave('figures/img-' + str(i) + '-filter-' + str(j+1) + '.png', img)
 
     def revert_image(self, img):
         """
